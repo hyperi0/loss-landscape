@@ -37,6 +37,7 @@ def load_dataset(dataset='cifar10', datapath='cifar10/data', batch_size=128, \
     assert split_idx < data_split, 'the index of data partition should be smaller than the total number of split'
 
     if dataset == 'cifar10':
+
         normalize = transforms.Normalize(mean=[x/255.0 for x in [125.3, 123.0, 113.9]],
                                          std=[x/255.0 for x in [63.0, 62.1, 66.7]])
 
@@ -79,8 +80,8 @@ def load_dataset(dataset='cifar10', datapath='cifar10/data', batch_size=128, \
                                                   shuffle=False, num_workers=threads)
 
     if dataset == 'mnist':
-        normalize = transforms.Normalize(mean=[x/255.0 for x in [125.3, 123.0, 113.9]],
-                                         std=[x/255.0 for x in [63.0, 62.1, 66.7]])
+        
+        normalize = transforms.Normalize((0.1307,), (0.3081,))
 
         data_folder = get_relative_path(datapath)
         if raw_data:

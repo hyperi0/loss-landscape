@@ -23,6 +23,7 @@ import plot_1D
 import model_loader
 import scheduler
 import mpi4pytorch as mpi
+import logging
 
 def name_surface_file(args, dir_file):
     # skip if surf_file is specified in args
@@ -59,7 +60,11 @@ def setup_surface_file(args, surf_file, dir_file):
     f['dir_file'] = dir_file
 
     # Create the coordinates(resolutions) at which the function is evaluated
-    xcoordinates = np.linspace(args.xmin, args.xmax, num=args.xnum)
+    logging.debug(f'args.xmin: {args.xmin}')
+    logging.debug(f'args.xmax: {args.xmax}')
+    logging.debug(f'args.xnum: {args.xnum}')
+
+    xcoordinates = np.linspace(args.xmin, args.xmax, num=int(args.xnum))
     f['xcoordinates'] = xcoordinates
 
     if args.y:
@@ -104,6 +109,8 @@ def crunch(surf_file, net, w, s, d, dataloader, loss_key, acc_key, comm, rank, a
     criterion = nn.CrossEntropyLoss()
     if args.loss_name == 'mse':
         criterion = nn.MSELoss()
+    if args.loss_name == 'nll':
+        criterion = nn.NLLLoss()
 
     # Loop over all uncalculated loss values
     for count, ind in enumerate(inds):
@@ -204,7 +211,12 @@ if __name__ == '__main__':
     parser.add_argument('--log', action='store_true', default=False, help='use log scale for loss values')
     parser.add_argument('--plot', action='store_true', default=False, help='plot figures after computation')
 
+    parser.add_argument('--log_level', default='warning')
+
     args = parser.parse_args()
+    
+    if args.log_level == 'debug':
+        logging.basicConfig(level=logging.DEBUG)
 
     torch.manual_seed(123)
     #--------------------------------------------------------------------------
@@ -272,7 +284,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     # Setup dataloader
     #--------------------------------------------------------------------------
-    # download CIFAR10 if it does not exit
+    # download CIFAR10 if it does not exist
     if rank == 0 and args.dataset == 'cifar10':
         torchvision.datasets.CIFAR10(root=args.dataset + '/data', train=True, download=True)
 

@@ -62,5 +62,18 @@ def eval_loss(net, criterion, loader, use_cuda=False):
                 total_loss += loss.item()*batch_size
                 _, predicted = torch.max(outputs.data, 1)
                 correct += predicted.cpu().eq(targets).sum().item()
+        
+        if isinstance(criterion, nn.NLLLoss):
+            for batch_idx, (inputs, targets) in enumerate(loader):
+                batch_size = inputs.size(0)
+                total += batch_size
+                inputs = Variable(inputs)
+                targets = Variable(targets)
+                if use_cuda:
+                    inputs, targets = inputs.cuda(), targets.cuda()
+                outputs = net(inputs)
+                total_loss += F.nll_loss(outputs, targets, reduction='sum')
+                pred = outputs.argmax(dim=1, keepdim=True)
+                correct += pred.eq(targets.view_as(pred)).sum().item()
 
     return total_loss/total, 100.*correct/total
